@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+
+
+    <button onclick="subscribe()">subscribe</button>
+
+
+    <script>
+      // 클라이언트와 개요파악
+      // https://developers.google.com/web/fundamentals/codelabs/push-notifications?hl=ko#%EC%83%98%ED%94%8C_%EC%BD%94%EB%93%9C_%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C
+      let sw = null
+      // 워크 등록
+      addEventListener('load', async () => {
+        sw = await navigator.serviceWorker.register('/javascripts/sw.js')
+        console.log(sw);
+      })
+
+      // 세이프하게
+      function urlB64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+          .replace(/\-/g, '+')
+          .replace(/_/g, '/');
+
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+
+        for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+      }
+
+      // 구독요청하면 정보 셋을 받을 수 있다. 이거 다시 서버로 주면 서버가 그 정보를 sub 변수에서 사용하여(디비로 이것저것 관리케하고), 메시지 보낼 수 있다.
+      async function subscribe() {
+        // 서버로부터 내려받자.
+        const applicationServerKey = urlB64ToUint8Array('BEXxAexmq_kQpv3I6ZItzCWnI2NQ1h8WBakjUhje8Qnx-RHAve2gHA2IKKqjvgxXVLkhla1aJGGKNdGbbUxxbp4');
+        let push = await sw.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey
+        })
+        
+        console.log(JSON.stringify(push));
+      }
+    </script>
+  </body>
+</html>
