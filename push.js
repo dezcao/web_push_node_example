@@ -8,12 +8,9 @@ let vapidKeys = {
 // 서비스할 사이트 주소를 적어야 한다. 아무거나 적었음.
 push.setVapidDetails('mailto:test@code.co.uk', vapidKeys.publicKey, vapidKeys.privateKey);
 
-let sub = { 
-		"endpoint": "https://fcm.googleapis.com/fcm/send/e8JBosphmEA:APA91bFrxqauJxFjmbXGkwoqNezvzRTkuspkB6M41Ge3p7mgidjO1TRCi9QJ8-MoezBHOZMc_8xPDXaGFSgF0PhV6rA13VQh5mmGwouqCAXdjkuluYxGVuZnvO5EEy6t7bwzmRJMn2aa", 
-		"expirationTime": null, 
-		"keys": { 
-					"p256dh": "BC7NNyezUbb8srYU-QRna-BC6UgYS0FlmssUoobPPU-Wav9p93j_Yv-x8DzvUbssSo5IqcqAafn760TW1RNwPKA", 
-					"auth": "nYrA8QhuJZS3225k_CzigQ" 
-				} 
-	};
+let sub = {
+	"endpoint":"https://fcm.googleapis.com/fcm/send/dhtTA53PfW8:APA91bEYfe07OwRoCFvWfIomf65zYxldywHSWwxI2_QJEzrcahDtoIlyzUxo3QmeN8_9-gKHe17im2EOYX6sJnLOQfAWHavHe5OCPJLs43_rrh7L2VUV2H4WdY9-HL5CREg6CtVQMMgJ"
+	,"expirationTime":null
+	,"keys":{"p256dh":"BCkPFFv9RUeI05mZr1a07SqoOK8FLSFiTq8iR9IM18hwtOozSRoMKYRgTAVCoiWbjoiSng6lt3uL9NqH68TPwCM"
+	,"auth":"6dXkq_1lD4Tp9WQ3afiJDw"}};
 push.sendNotification(sub, 'test message');

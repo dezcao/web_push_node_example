@@ -8,21 +8,12 @@
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
 
-
-    <button onclick="subscribe()">subscribe</button>
-
-
+    <button  onclick="pushMessage()">관리자가 메시지 보낸걸로 하자. /usrs/olle@gmail.com/hello</button>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
       // 클라이언트와 개요파악
       // https://developers.google.com/web/fundamentals/codelabs/push-notifications?hl=ko#%EC%83%98%ED%94%8C_%EC%BD%94%EB%93%9C_%EB%8B%A4%EC%9A%B4%EB%A1%9C%EB%93%9C
-      let sw = null
-      // 워크 등록
-      addEventListener('load', async () => {
-        sw = await navigator.serviceWorker.register('/javascripts/sw.js')
-        console.log(sw);
-      })
-
-      // 세이프하게
+      // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
       function urlB64ToUint8Array(base64String) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
         const base64 = (base64String + padding)
@@ -38,16 +29,53 @@
         return outputArray;
       }
 
-      // 구독요청하면 정보 셋을 받을 수 있다. 이거 다시 서버로 주면 서버가 그 정보를 sub 변수에서 사용하여(디비로 이것저것 관리케하고), 메시지 보낼 수 있다.
-      async function subscribe() {
-        // 서버로부터 내려받자.
-        const applicationServerKey = urlB64ToUint8Array('BEXxAexmq_kQpv3I6ZItzCWnI2NQ1h8WBakjUhje8Qnx-RHAve2gHA2IKKqjvgxXVLkhla1aJGGKNdGbbUxxbp4');
-        let push = await sw.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: applicationServerKey
-        })
+      let sw = null
+      // 브라우저 서비스워커에 우리의 워커를 등록한다.
+      addEventListener('load', async () => {
+        console.log('?')
+        sw = await navigator.serviceWorker.register('/javascripts/service-worker.js', {scope: '/javascripts/'});
         
-        console.log(JSON.stringify(push));
+        let subscription = await sw.pushManager.getSubscription();
+        if (!subscription) { // 등록된게 없으면 서버에 공개키를 요청해서 하나 만든다.
+           // Get the server's public key
+          const response = await fetch('/users/vapidPublicKey');
+          const vapidPublicKey = await response.text();
+          // Chrome doesn't accept the base64-encoded (string) vapidPublicKey yet
+          // urlBase64ToUint8Array() is defined in /tools.js
+          const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+          console.log('convertedVapidKey ', convertedVapidKey)
+          // Otherwise, subscribe the user (userVisibleOnly allows to specify that we don't plan to
+          // send notifications that don't have a visible effect for the user).
+          subscription = sw.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+          });
+        }
+        console.log(subscription)
+        
+        // 서버에게도 정보들을 등록해달라고 요청한다. - 샘플이라서 무조건 등록하는 샘이다. 버튼 클릭 등이 있을때만 아래 로직이 돌아야 하겠지
+        // Send the subscription details to the server using the Fetch API.
+        fetch('/users/register', {
+          method: 'post',
+          headers: {
+            'Content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            subscription: subscription, // 필수 등록
+            email: 'olle@gmail.com' // 유저를 식별하기 위해 샘플에서 임의로 추가함.
+          }),
+        });
+      })
+
+      async function pushMessage() {
+        console.log('?')
+        let a = await fetch('/users/olle@gmail.com/hello', {
+          method: 'get',
+          headers: {
+            'Content-type': 'application/json'
+          }
+        });
+        console.log(a);
       }
     </script>
   </body>
